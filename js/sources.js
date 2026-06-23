@@ -47,33 +47,43 @@ const Sources = (() => {
     };
   }
 
+  // On an HTTPS page, browsers block plain HTTP (mixed-content) audio streams.
+  // So when we're served over https we keep ONLY stations with a secure stream —
+  // that way everything shown to the user actually plays. We over-fetch to compensate.
+  const ON_HTTPS = location.protocol === 'https:';
+  const keepPlayable = arr => ON_HTTPS
+    ? arr.filter(s => (s.url_resolved || s.url || '').startsWith('https:'))
+    : arr;
+  const prep = (arr, limit) => keepPlayable(arr).slice(0, limit).map(mapStation);
+  const over = limit => ON_HTTPS ? Math.min(limit * 3, 500) : limit; // fetch extra so enough survive filtering
+
   const Radio = {
     async top(limit = 30) {
-      const data = await radio(`/json/stations/topclick/${limit}`);
-      return data.map(mapStation);
+      const data = await radio(`/json/stations/topclick/${over(limit)}`);
+      return prep(data, limit);
     },
     async byTag(tag, limit = 40) {
-      const data = await radio(`/json/stations/search?tagList=${encodeURIComponent(tag)}&hidebroken=true&order=clickcount&reverse=true&limit=${limit}`);
-      return data.map(mapStation);
+      const data = await radio(`/json/stations/search?tagList=${encodeURIComponent(tag)}&hidebroken=true&order=clickcount&reverse=true&limit=${over(limit)}`);
+      return prep(data, limit);
     },
     async search(name, limit = 40) {
-      const data = await radio(`/json/stations/search?name=${encodeURIComponent(name)}&hidebroken=true&order=clickcount&reverse=true&limit=${limit}`);
-      return data.map(mapStation);
+      const data = await radio(`/json/stations/search?name=${encodeURIComponent(name)}&hidebroken=true&order=clickcount&reverse=true&limit=${over(limit)}`);
+      return prep(data, limit);
     },
     // A pool of popular, working stations to pick a random "surprise" from.
     async randomPool(limit = 300) {
-      const data = await radio(`/json/stations/topclick/${limit}`);
-      return data.map(mapStation);
+      const data = await radio(`/json/stations/topclick/500`);
+      return keepPlayable(data).map(mapStation);
     },
     // Top stations from a given country (ISO code, e.g. "IN" for India).
     async byCountry(code, limit = 80) {
-      const data = await radio(`/json/stations/search?countrycode=${encodeURIComponent(code)}&hidebroken=true&order=clickcount&reverse=true&limit=${limit}`);
-      return data.map(mapStation);
+      const data = await radio(`/json/stations/search?countrycode=${encodeURIComponent(code)}&hidebroken=true&order=clickcount&reverse=true&limit=${over(limit)}`);
+      return prep(data, limit);
     },
     // Stations matching a city name, limited to India.
     async byCityIndia(city, limit = 48) {
-      const data = await radio(`/json/stations/search?name=${encodeURIComponent(city)}&countrycode=IN&hidebroken=true&order=clickcount&reverse=true&limit=${limit}`);
-      return data.map(mapStation);
+      const data = await radio(`/json/stations/search?name=${encodeURIComponent(city)}&countrycode=IN&hidebroken=true&order=clickcount&reverse=true&limit=${over(limit)}`);
+      return prep(data, limit);
     }
   };
 
