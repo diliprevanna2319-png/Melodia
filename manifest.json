@@ -1,0 +1,14 @@
+{
+  "name": "Melodia — Free Music, Every Genre",
+  "short_name": "Melodia",
+  "description": "Listen to 30,000+ free internet radio stations and millions of free Internet Archive tracks. Every genre, every language, completely free.",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b0e14",
+  "theme_color": "#0b0e14",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

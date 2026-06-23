@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b0e14">
+<title>Melodia — Free Music, Every Genre</title>
+<meta name="description" content="Listen to 30,000+ free internet radio stations and millions of free Internet Archive tracks. Every genre, every language, completely free.">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="logo">🎶</span>
+      <div><div class="brand-name">Melodia</div><div class="brand-sub">Free music · every genre</div></div>
+    </div>
+    <nav>
+      <div class="nav-item active" data-view="home"><span>🏠</span> Home</div>
+      <div class="nav-item" data-view="radio"><span>📻</span> Radio</div>
+      <div class="nav-item" data-view="archive"><span>📚</span> Free Library</div>
+      <div class="nav-item" data-view="files"><span>💾</span> My Files</div>
+      <div class="nav-item" data-view="favorites"><span>❤️</span> Favorites</div>
+    </nav>
+    <div class="disclaimer">Plays free &amp; public-domain music only — internet radio, the Internet Archive, and your own files.</div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <h1 id="view-title">Home</h1>
+      <div class="search-wrap">
+        <input id="search" type="search" placeholder="Search songs, artists, stations…" autocomplete="off">
+        <button id="search-btn" title="Search">🔍</button>
+      </div>
+    </header>
+    <section id="content"></section>
+  </main>
+</div>
+
+<!-- Persistent player bar -->
+<footer class="player" id="player" hidden>
+  <div class="np">
+    <div class="np-art" id="np-art">🎵</div>
+    <div class="np-meta">
+      <div class="np-title" id="np-title">Nothing playing</div>
+      <div class="np-sub" id="np-sub">Pick something to play</div>
+    </div>
+    <button class="np-fav" id="np-fav" title="Add to favorites">🤍</button>
+  </div>
+  <div class="controls">
+    <button id="btn-play" class="btn-play" title="Play/Pause">▶</button>
+  </div>
+  <div class="extra">
+    <span class="status" id="status"></span>
+    <label class="vol" title="Volume">🔊 <input id="vol" type="range" min="0" max="1" step="0.01" value="1"></label>
+  </div>
+</footer>
+
+<audio id="audio" crossorigin="anonymous"></audio>
+
+<script src="js/sources.js"></script>
+<script src="js/app.js"></script>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}</script>
+</body>
+</html>
