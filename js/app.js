@@ -292,5 +292,26 @@ document.querySelectorAll('.nav-item').forEach(n => n.addEventListener('click', 
 $('search-btn').onclick = doSearch;
 $('search').addEventListener('keydown', e => { if(e.key==='Enter') doSearch(); });
 
+// 🎲 Surprise me — play a random popular station
+let surprisePool = [];
+async function surpriseMe(){
+  const btn = $('surprise'); const label = btn.textContent;
+  btn.disabled = true; btn.textContent = '🎲 Finding…';
+  try {
+    if(!surprisePool.length) surprisePool = await Sources.Radio.randomPool(300);
+    if(surprisePool.length){
+      const pick = surprisePool[Math.floor(Math.random() * surprisePool.length)];
+      archiveQueue = [];
+      play(pick);
+    }
+  } catch(e){
+    $('player').hidden = false;
+    $('status').textContent = '⚠ Couldn’t fetch a station — try again';
+  } finally {
+    btn.disabled = false; btn.textContent = label;
+  }
+}
+$('surprise').onclick = surpriseMe;
+
 // ---------- boot ----------
 setView('home');

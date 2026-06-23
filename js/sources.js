@@ -59,6 +59,11 @@ const Sources = (() => {
     async search(name, limit = 40) {
       const data = await radio(`/json/stations/search?name=${encodeURIComponent(name)}&hidebroken=true&order=clickcount&reverse=true&limit=${limit}`);
       return data.map(mapStation);
+    },
+    // A pool of popular, working stations to pick a random "surprise" from.
+    async randomPool(limit = 300) {
+      const data = await radio(`/json/stations/topclick/${limit}`);
+      return data.map(mapStation);
     }
   };
 
