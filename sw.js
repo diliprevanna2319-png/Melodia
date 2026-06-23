@@ -1,4 +1,4 @@
-const CACHE = "melodia-v5";
+const CACHE = "melodia-v6";
 const ASSETS = ["index.html","styles.css","manifest.json","icon.svg","js/sources.js","js/app.js"];
 
 self.addEventListener("install", e => {
