@@ -87,6 +87,9 @@ body{margin:0;font-family:system-ui,'Segoe UI',Roboto,sans-serif;background:var(
 .btn-play.loading-state::after{content:"";width:20px;height:20px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
 .extra{display:flex;align-items:center;gap:16px;width:300px;justify-content:flex-end}
 .status{font-size:12px;color:var(--muted)}
+.sleep-btn{background:var(--panel2);border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:7px 10px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+.sleep-btn:hover{color:var(--text);border-color:var(--accent)}
+.sleep-btn.on{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;border-color:transparent}
 .vol{display:flex;align-items:center;gap:6px;font-size:14px}
 .vol input{width:90px;accent-color:var(--accent)}
 

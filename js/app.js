@@ -23,6 +23,10 @@ const INDIA_TAGS = ['Bollywood','Hindi','Tamil','Telugu','Punjabi','Kannada','Ma
 const GENRES = ['Pop','Rock','Classical','Jazz','Lofi','Chill','EDM','Dance','Hip Hop',
   'Romance','80s','90s','Oldies','Country','Reggae','Metal','News'];
 
+// Indian cities for local FM
+const CITIES = ['Mumbai','Delhi','Bangalore','Chennai','Kolkata','Hyderabad','Pune',
+  'Ahmedabad','Jaipur','Lucknow','Chandigarh','Kochi'];
+
 // ---------- helpers ----------
 function saveFavs(){ localStorage.setItem(FAV_KEY, JSON.stringify(favorites)); }
 function isFav(item){ return favorites.some(f => f.id === item.id); }
@@ -113,10 +117,17 @@ const views = {
     content.innerHTML = `
       <div class="section-title">🇮🇳 Indian languages &amp; genres</div>
       <div class="chips" id="india-chips2"></div>
+      <div class="section-title">🏙️ City FM</div>
+      <div class="chips" id="city-chips"></div>
       <div class="section-title">More genres</div>
       <div class="chips" id="genre-chips2"></div>
       <div id="radio-results" style="margin-top:8px"></div>`;
     buildIndiaChips($('india-chips2'));
+    const cityHost = $('city-chips');
+    CITIES.forEach(city => {
+      const c = document.createElement('div'); c.className='chip'; c.textContent=city;
+      c.onclick = () => loadCity(city); cityHost.appendChild(c);
+    });
     const chips = $('genre-chips2');
     GENRES.forEach(g => {
       const c = document.createElement('div'); c.className='chip'; c.textContent=g;
@@ -213,6 +224,16 @@ async function loadIndia(){
   } catch(e){ showError('Could not load Indian stations.'); }
 }
 
+async function loadCity(city){
+  if(currentView !== 'radio') setView('radio');
+  const host = $('radio-results') || content;
+  host.innerHTML = `<div class="loading"><div class="spinner"></div>Finding ${esc(city)} stations…</div>`;
+  try {
+    const items = await Sources.Radio.byCityIndia(city, 48);
+    renderStationGrid(host, items, `No ${esc(city)} stations found right now — try All India FM.`);
+  } catch(e){ showError('Could not load stations.'); }
+}
+
 async function loadGenre(tag){
   const host = $('radio-results') || content;
   host.innerHTML = `<div class="loading"><div class="spinner"></div>Finding ${esc(tag)} stations…</div>`;
@@ -305,6 +326,25 @@ $('np-fav').onclick = () => {
   else { favorites.unshift({...current}); $('np-fav').textContent='❤️'; }
   saveFavs();
   if(currentView==='favorites') views.favorites();
+};
+
+// ---------- sleep timer ----------
+const SLEEP_STEPS = [0, 15, 30, 45, 60, 90]; // minutes; 0 = off
+let sleepMins = 0, sleepEndsAt = 0, sleepTimeout = null, sleepTick = null;
+function setSleep(mins){
+  clearTimeout(sleepTimeout); clearInterval(sleepTick);
+  const btn = $('sleep');
+  sleepMins = mins;
+  if(!mins){ sleepEndsAt = 0; btn.textContent = '⏰'; btn.classList.remove('on'); return; }
+  sleepEndsAt = Date.now() + mins * 60000;
+  sleepTimeout = setTimeout(() => { audio.pause(); setSleep(0); $('status').textContent = '⏰ Sleep timer ended'; }, mins * 60000);
+  const upd = () => { const left = Math.max(1, Math.round((sleepEndsAt - Date.now())/60000)); btn.textContent = '⏰ ' + left + 'm'; };
+  upd(); sleepTick = setInterval(upd, 30000); btn.classList.add('on');
+}
+$('sleep').onclick = () => {
+  const next = SLEEP_STEPS[(SLEEP_STEPS.indexOf(sleepMins) + 1) % SLEEP_STEPS.length];
+  setSleep(next);
+  $('status').textContent = next ? `⏰ Stopping in ${next} min` : '⏰ Sleep timer off';
 };
 
 // volume (persisted)

@@ -69,6 +69,11 @@ const Sources = (() => {
     async byCountry(code, limit = 80) {
       const data = await radio(`/json/stations/search?countrycode=${encodeURIComponent(code)}&hidebroken=true&order=clickcount&reverse=true&limit=${limit}`);
       return data.map(mapStation);
+    },
+    // Stations matching a city name, limited to India.
+    async byCityIndia(city, limit = 48) {
+      const data = await radio(`/json/stations/search?name=${encodeURIComponent(city)}&countrycode=IN&hidebroken=true&order=clickcount&reverse=true&limit=${limit}`);
+      return data.map(mapStation);
     }
   };
 
