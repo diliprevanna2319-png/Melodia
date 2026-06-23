@@ -13,10 +13,15 @@ const VOL_KEY = 'melodia.volume';
 const favorites = JSON.parse(localStorage.getItem(FAV_KEY) || '[]');
 const localFiles = []; // {title, sub, url} — object URLs, session only
 
-// Popular genres/languages (good free-radio coverage, India-friendly)
-const GENRES = ['Pop','Rock','Bollywood','Hindi','Tamil','Telugu','Punjabi','Classical',
-  'Jazz','Lofi','Chill','EDM','Dance','Hip Hop','Devotional','Bhajan','Romance','80s','90s',
-  'Oldies','Country','Reggae','Metal','News','Kannada','Malayalam'];
+// Indian languages & genres (good free-radio coverage)
+const INDIA_TAGS = ['Bollywood','Hindi','Tamil','Telugu','Punjabi','Kannada','Malayalam',
+  'Marathi','Bengali','Gujarati','Bhojpuri','Rajasthani','Assamese','Odia','Urdu',
+  'Ghazal','Qawwali','Sufi','Carnatic','Hindustani','Indipop','Tollywood','Kollywood',
+  'Devotional','Bhajan','Kirtan'];
+
+// General/international genres
+const GENRES = ['Pop','Rock','Classical','Jazz','Lofi','Chill','EDM','Dance','Hip Hop',
+  'Romance','80s','90s','Oldies','Country','Reggae','Metal','News'];
 
 // ---------- helpers ----------
 function saveFavs(){ localStorage.setItem(FAV_KEY, JSON.stringify(favorites)); }
@@ -75,10 +80,13 @@ function trackList(tracks, headerHTML=''){
 const views = {
   async home(){
     content.innerHTML = `
-      <div class="section-title">Browse by genre &amp; language</div>
+      <div class="section-title">🇮🇳 Indian stations</div>
+      <div class="chips" id="india-chips"></div>
+      <div class="section-title">Other genres</div>
       <div class="chips" id="genre-chips"></div>
       <div class="section-title">🔥 Popular stations right now</div>
       <div id="top-stations"><div class="loading"><div class="spinner"></div>Loading top stations…</div></div>`;
+    buildIndiaChips($('india-chips'));
     const chips = $('genre-chips');
     GENRES.forEach(g => {
       const c = document.createElement('div');
@@ -103,9 +111,12 @@ const views = {
 
   radio(){
     content.innerHTML = `
-      <div class="section-title">Pick a genre or search above</div>
+      <div class="section-title">🇮🇳 Indian languages &amp; genres</div>
+      <div class="chips" id="india-chips2"></div>
+      <div class="section-title">More genres</div>
       <div class="chips" id="genre-chips2"></div>
       <div id="radio-results" style="margin-top:8px"></div>`;
+    buildIndiaChips($('india-chips2'));
     const chips = $('genre-chips2');
     GENRES.forEach(g => {
       const c = document.createElement('div'); c.className='chip'; c.textContent=g;
@@ -163,20 +174,51 @@ function renderFiles(){
   host.appendChild(list);
 }
 
+// Build the Indian-stations chip row: an "All India FM" chip + every Indian tag.
+function buildIndiaChips(host){
+  if(!host) return;
+  const all = document.createElement('div');
+  all.className = 'chip chip-india';
+  all.textContent = '🇮🇳 All India FM';
+  all.onclick = loadIndia;
+  host.appendChild(all);
+  INDIA_TAGS.forEach(t => {
+    const c = document.createElement('div'); c.className='chip'; c.textContent=t;
+    c.onclick = () => { setView('radio'); loadGenre(t); };
+    host.appendChild(c);
+  });
+}
+
+// Shared: render a list of stations as a card grid into `host`.
+function renderStationGrid(host, items, emptyMsg){
+  if(!items.length){ host.innerHTML = `<div class="hint">${esc(emptyMsg)}</div>`; return; }
+  const grid = document.createElement('div'); grid.className='grid';
+  items.forEach(item => {
+    const el = document.createElement('div'); el.className='card';
+    el.innerHTML = `${artHTML(item,'card-art')}<div class="card-title">${esc(item.title)}</div>
+      <div class="card-sub">${esc(item.sub)}</div><div class="card-badge">📻 Live radio</div>`;
+    el.onclick = () => play(item);
+    grid.appendChild(el);
+  });
+  host.innerHTML=''; host.appendChild(grid);
+}
+
+async function loadIndia(){
+  if(currentView !== 'radio') setView('radio');
+  const host = $('radio-results') || content;
+  host.innerHTML = `<div class="loading"><div class="spinner"></div>Finding top stations from India…</div>`;
+  try {
+    const items = await Sources.Radio.byCountry('IN', 100);
+    renderStationGrid(host, items, 'No live Indian stations reachable right now — try a specific language chip above.');
+  } catch(e){ showError('Could not load Indian stations.'); }
+}
+
 async function loadGenre(tag){
   const host = $('radio-results') || content;
   host.innerHTML = `<div class="loading"><div class="spinner"></div>Finding ${esc(tag)} stations…</div>`;
   try {
     const items = await Sources.Radio.byTag(tag.toLowerCase(), 48);
-    if($('radio-results')){
-      if(!items.length){ host.innerHTML=`<div class="hint">No live ${esc(tag)} stations found right now. Try another genre.</div>`; return; }
-      const grid=document.createElement('div'); grid.className='grid';
-      items.forEach(item=>{ const el=document.createElement('div'); el.className='card';
-        el.innerHTML=`${artHTML(item,'card-art')}<div class="card-title">${esc(item.title)}</div>
-          <div class="card-sub">${esc(item.sub)}</div><div class="card-badge">📻 Live radio</div>`;
-        el.onclick=()=>play(item); grid.appendChild(el); });
-      host.innerHTML=''; host.appendChild(grid);
-    }
+    if($('radio-results')) renderStationGrid(host, items, `No live ${esc(tag)} stations found right now. Try another chip.`);
   } catch(e){ showError('Could not load stations.'); }
 }
 

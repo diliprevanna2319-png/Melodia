@@ -64,6 +64,11 @@ const Sources = (() => {
     async randomPool(limit = 300) {
       const data = await radio(`/json/stations/topclick/${limit}`);
       return data.map(mapStation);
+    },
+    // Top stations from a given country (ISO code, e.g. "IN" for India).
+    async byCountry(code, limit = 80) {
+      const data = await radio(`/json/stations/search?countrycode=${encodeURIComponent(code)}&hidebroken=true&order=clickcount&reverse=true&limit=${limit}`);
+      return data.map(mapStation);
     }
   };
 
